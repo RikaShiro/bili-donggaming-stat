@@ -1,0 +1,24 @@
+{
+  "name": "bili-donggaming-stat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RikaShiro/bili-donggaming-stat.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RikaShiro/bili-donggaming-stat/issues"
+  },
+  "homepage": "https://github.com/RikaShiro/bili-donggaming-stat#readme",
+  "dependencies": {
+    "qrcode": "^1.5.1",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
