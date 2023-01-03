@@ -21,8 +21,22 @@ login procedure
   - node.js https request. need to carry a cookie
 
 search uploader videos
-get list
-filter videos within one year
+- get list
+  - {
+  code: -401,
+  message: '非法访问',
+  ttl: 1,
+  data: {
+    ga_data: {
+      decisions: [Array],
+      risk_level: 1,
+      grisk_id: 'daa3e0060d0c749c28e34bce379b74a3',
+      decision_ctx: [Object]
+    }
+  }
+  must add referer and valid user-agent. otherwise -401
+}
+- filter videos within one year
 
 download audio
 or download video then extract audio
