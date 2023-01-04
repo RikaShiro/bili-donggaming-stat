@@ -23,13 +23,11 @@ const options = {
 	order: 'pubdate',
 	tid: 0,
 	pn: 1,
-	ps: 5
+	ps: 10
 }
 const fakeUserAgent =
 	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.54'
-let done = false
-const fullList = []
-const range = 30
+let fullList = []
 
 const search = () => {
 	console.log(`searching for videos ... page #${options.pn}`)
@@ -62,12 +60,7 @@ const search = () => {
 		.on('error', print)
 		.end()
 }
-const searchWithin = setInterval(search, 10000)
-
-function exitWithMsg(msg) {
-	console.error(msg)
-	clearInterval(searchWithin)
-}
+const searchWithinRange = setInterval(search, 10000)
 
 function parseChunks(chunks) {
 	chunks = Buffer.concat(chunks)
@@ -75,7 +68,6 @@ function parseChunks(chunks) {
 	switch (code) {
 		case 0:
 			add2list(data)
-			options.pn++
 			break
 		case -400:
 			exitWithMsg('request error')
@@ -92,15 +84,22 @@ function parseChunks(chunks) {
 		default:
 			exitWithMsg(`unexpected status code ${code}`, chunks)
 	}
+
+	function exitWithMsg(msg) {
+		console.error(msg)
+		clearInterval(searchWithinRange)
+	}
 }
 
 function add2list(data) {
+	let done = false
 	const { list, page } = data
 	const { vlist } = list
 	vlist.forEach((video) => {
 		const { created } = video
-		if (within(created)) {
-			fullList.push(extract(video))
+		if (within(created, 30)) {
+			const { bvid, title } = video
+			fullList.push({ bvid, title })
 		} else {
 			done = true
 		}
@@ -111,22 +110,24 @@ function add2list(data) {
 	}
 	if (done) {
 		write2file()
+	} else {
+		options.pn++
 	}
 
-	function within(timestamp) {
+	function within(timestamp, range = 365) {
 		let diff = now - timestamp
-		diff /= 86400
+		diff = Math.floor(diff / 86400)
 		return diff < range
 	}
 
-	function extract(video) {
-		const { aid, bvid, title } = video
-		return { aid, bvid, title }
-	}
-
 	function write2file() {
-		clearInterval(searchWithin)
-		writeFileSync(`./${mid}.json`, JSON.stringify(fullList))
+		clearInterval(searchWithinRange)
 		console.log('search done')
+		console.log('writing list to file ...')
+		fullList = fullList.map((x) => JSON.stringify(x))
+		fullList = new Set(fullList)
+		fullList = Array.from(fullList).map((x) => JSON.parse(x))
+		writeFileSync(`./${mid}.json`, JSON.stringify(fullList))
+		console.log('done')
 	}
 }
