@@ -3,7 +3,7 @@ const URL = require('node:url')
 const { writeFileSync } = require('node:fs')
 const qrcode = require('qrcode-terminal')
 
-var qrcode_key
+let qrcode_key
 const print = (e) => {
 	console.error(e)
 }
@@ -14,6 +14,7 @@ https
 			path: '/x/passport-login/web/qrcode/generate',
 			port: 443
 		},
+		// assume chunk size is small
 		(res) => {
 			res.on('data', (chunk) => {
 				const { data } = JSON.parse(chunk)
@@ -27,6 +28,7 @@ https
 	.end()
 
 setTimeout(() => {
+	console.log('please scan the qrcode below in bilibili App')
 	const checkLoginStatus = setInterval(() => {
 		https
 			.get(
@@ -70,5 +72,5 @@ setTimeout(() => {
 			)
 			.on('error', print)
 			.end()
-	}, 3000)
-}, 5000)
+	}, 5000)
+}, 10000)

@@ -1,5 +1,4 @@
 login procedure
-
 - https get qrcode
   - test API with cmd curl
     <br>sample response in JSON
@@ -37,7 +36,12 @@ search uploader videos
   must add referer and valid user-agent. otherwise -401
 }
 - filter videos within one year
+  - try 7 days and 30 days first
+  - SyntaxError: Unexpected end of JSON input. I don't know why
+    - solution: https://stackoverflow.com/questions/62480360/error-syntaxerror-unexpected-end-of-json-input
+  - how to automatically execute another js file after current file ends?
 
-download audio
-or download video then extract audio
+get audio
+- download audio directly or download video then convert to audio
+- need a universal sleep function in node.js
 use pattern matching to find keywords

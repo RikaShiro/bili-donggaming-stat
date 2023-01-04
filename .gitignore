@@ -2,6 +2,10 @@ token.json
 qrcode.json
 test.js
 abc.js
+*.json
+!package.json
+!target.json
+!1074636993.json
 
 # Logs
 logs
