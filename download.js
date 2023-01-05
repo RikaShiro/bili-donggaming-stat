@@ -1,7 +1,7 @@
 const { existsSync, createWriteStream } = require('node:fs')
 const { mid } = require('./target.json')
-const listFile = `./${mid}.json`
-if (!existsSync(listFile)) {
+const listws = `./${mid}.json`
+if (!existsSync(listws)) {
 	console.error('bvid list does not exist')
 	process.exit()
 }
@@ -12,7 +12,7 @@ const print = (e, data) => {
 }
 const http = require('node:http')
 const https = require('node:https')
-const list = require(listFile)
+const list = require(listws)
 const token = require('./token.json')
 const URL = require('node:url')
 const fakeUserAgent =
@@ -25,7 +25,7 @@ list.forEach((el, i) => {
 
 function getLink(el, i) {
 	const { bvid, cid } = el
-	const dst = `./videos/${bvid}.mp4`
+	const dst = `./audios/${bvid}.m4a`
 	if (existsSync(dst)) return
 	const options = {
 		bvid,
@@ -69,8 +69,7 @@ function getLink(el, i) {
 
 function downloadAudio(bvid, src) {
 	const dst = `./audios/${bvid}.m4a`
-	if (existsSync(dst)) return
-	const file = createWriteStream(dst)
+	const ws = createWriteStream(dst)
 	const { hostname, path } = URL.parse(src)
 	const options = {
 		hostname,
@@ -83,10 +82,9 @@ function downloadAudio(bvid, src) {
 		}
 	}
 	https.get(options, (res) => {
-		res.pipe(file)
-
-		file.on('finish', () => {
-			file.close()
+		res.pipe(ws)
+		ws.on('finish', () => {
+			ws.close()
 			console.log(`${bvid} finished`)
 		})
 	})

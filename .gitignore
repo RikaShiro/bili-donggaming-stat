@@ -6,7 +6,7 @@ abc.js
 !package.json
 !target.json
 !1074636993.json
-audios
+audios/*.m4a
 
 # Logs
 logs
