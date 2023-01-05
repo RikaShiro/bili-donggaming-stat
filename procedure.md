@@ -42,6 +42,6 @@ search uploader videos
   - how to automatically execute another js file after current file ends?
 
 get audio
-- download audio directly or download video then convert to audio
-- need a universal sleep function in node.js
-use pattern matching to find keywords
+  - get cid by bvid/aid
+  - get dash audio url by cid
+  - download using https GET + createWriteStream
