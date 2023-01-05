@@ -18,8 +18,6 @@
   },
   "homepage": "https://github.com/RikaShiro/bili-donggaming-stat#readme",
   "dependencies": {
-    "qrcode": "^1.5.1",
-    "qrcode-terminal": "^0.12.0",
-    "wget-improved": "^3.3.1"
+    "qrcode-terminal": "^0.12.0"
   }
 }
