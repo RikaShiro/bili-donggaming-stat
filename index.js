@@ -6,11 +6,7 @@ const qrcode = require('qrcode-terminal')
 console.log('please scan the qrcode below in bilibili App')
 let qrcode_key
 https.get(
-	{
-		hostname: 'passport.bilibili.com',
-		path: '/x/passport-login/web/qrcode/generate',
-		port: 443
-	},
+	'https://passport.bilibili.com/x/passport-login/web/qrcode/generate',
 	// assume chunk size is small
 	(res) => {
 		res.on('data', (chunk) => {
@@ -24,11 +20,7 @@ https.get(
 // assume the previous https requesr will be resolved in 8 seconds
 const checkLoginStatus = setInterval(() => {
 	https.get(
-		{
-			hostname: 'passport.bilibili.com',
-			path: `/x/passport-login/web/qrcode/poll?qrcode_key=${qrcode_key}`,
-			port: 443
-		},
+		`https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key=${qrcode_key}`,
 		(res) => {
 			res.on('data', (chunk) => {
 				const { code, data } = JSON.parse(chunk)
@@ -60,10 +52,17 @@ function write2file(url) {
 	let params = new URLSearchParams(url.query)
 	params = Array.from(params.entries())
 	const token = {}
-	for (const entry of params) {
-		token[entry[0]] = entry[1]
+	for (const [k, v] of params) {
+		token[k] = v
 	}
+	token.csrf = token.bili_jct
 	delete token['gourl']
-	writeFileSync('./token.json', JSON.stringify(token))
+	const headers = {
+		Cookie: token,
+		Referer: 'https://space1.bilibili.com/',
+		'User-Agent':
+			'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.54'
+	}
+	writeFileSync('./headers.json', JSON.stringify(headers))
 	console.log('done')
 }

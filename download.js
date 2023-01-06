@@ -1,32 +1,35 @@
+const { check } = require('./check.js')
+check()
 const { existsSync, createWriteStream } = require('node:fs')
 const { mid } = require('./target.json')
-const listws = `./${mid}.json`
-if (!existsSync(listws)) {
+const listFile = `./${mid}.json`
+if (!existsSync(listFile)) {
 	console.error('bvid list does not exist')
 	process.exit()
 }
+const http = require('node:http')
+const https = require('node:https')
+const URL = require('node:url')
+const list = require(listFile)
+const headers = require('./headers.json')
 
 const print = (e, data) => {
 	console.error(e, data)
 	process.exit()
 }
-const http = require('node:http')
-const https = require('node:https')
-const list = require(listws)
-const token = require('./token.json')
-const URL = require('node:url')
-const fakeUserAgent =
-	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.54'
 list.forEach((el, i) => {
 	setTimeout(() => {
 		getLink(el, i)
-	}, (i + 1) * 1000)
+	}, (i + 1) * 2000)
 })
 
 function getLink(el, i) {
 	const { bvid, cid } = el
 	const dst = `./audios/${bvid}.m4a`
-	if (existsSync(dst)) return
+	if (existsSync(dst)) {
+		console.log(`${dst} already exists`)
+		return
+	}
 	const options = {
 		bvid,
 		cid,
@@ -49,7 +52,7 @@ function getLink(el, i) {
 							const audioLink = data.dash.audio[0].baseUrl
 							setTimeout(() => {
 								downloadAudio(bvid, audioLink)
-							}, (i + 1) * 1000)
+							}, (i + 1) * 2000)
 						} else {
 							print('invalid data', data)
 						}
@@ -71,21 +74,18 @@ function downloadAudio(bvid, src) {
 	const dst = `./audios/${bvid}.m4a`
 	const ws = createWriteStream(dst)
 	const { hostname, path } = URL.parse(src)
-	const options = {
-		hostname,
-		path,
-		port: 443,
-		headers: {
-			Cookie: token,
-			'User-Agent': fakeUserAgent,
-			Referer: 'https://www.bilibili.com/'
+	https.get(
+		{
+			hostname,
+			path,
+			headers
+		},
+		(res) => {
+			res.pipe(ws)
+			ws.on('finish', () => {
+				ws.close()
+				console.log(`${bvid} finished`)
+			})
 		}
-	}
-	https.get(options, (res) => {
-		res.pipe(ws)
-		ws.on('finish', () => {
-			ws.close()
-			console.log(`${bvid} finished`)
-		})
-	})
+	)
 }

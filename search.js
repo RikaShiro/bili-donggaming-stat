@@ -1,26 +1,13 @@
-const { existsSync, writeFileSync, unlink } = require('node:fs')
-if (!existsSync('./token.json')) {
-	console.log('no token')
-	process.exit()
-}
-
-const token = require('./token.json')
-const now = Math.floor(Date.now() / 1000)
-if (now >= token.Expires) {
-	console.log('token expired')
-	unlink('./token.json', print)
-	process.exit()
-}
-
+const { check } = require('./check.js')
+check()
 const https = require('node:https')
 const http = require('node:http')
 const { URLSearchParams } = require('node:url')
+const { writeFileSync } = require('node:fs')
 const { mid } = require('./target.json')
+const headers = require('./headers.json')
 
-const print = (info, data) => {
-	console.error(info, data)
-	process.exit()
-}
+const now = Math.floor(Date.now() / 1000)
 const options = {
 	mid,
 	order: 'pubdate',
@@ -28,10 +15,12 @@ const options = {
 	pn: 1,
 	ps: 10
 }
-const fakeUserAgent =
-	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.54'
 let bvidList = []
 
+const print = (info, data) => {
+	console.error(info, data)
+	process.exit()
+}
 const search = () => {
 	console.log(`search for videos ... page #${options.pn}`)
 	const params = new URLSearchParams(options).toString()
@@ -39,13 +28,8 @@ const search = () => {
 		{
 			hostname: 'api.bilibili.com',
 			path: `/x/space/arc/search?${params}`,
-			port: 443,
 			// fake referer and user-agent are necessary
-			headers: {
-				Cookie: token,
-				'User-Agent': fakeUserAgent,
-				Referer: 'https://space1.bilibili.com/'
-			}
+			headers
 		},
 		// chunks size can be large. use chunks to collect
 		(res) => {
