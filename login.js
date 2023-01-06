@@ -23,7 +23,8 @@ const checkLoginStatus = setInterval(() => {
 		`https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key=${qrcode_key}`,
 		(res) => {
 			res.on('data', (chunk) => {
-				const { code, data } = JSON.parse(chunk)
+				chunk = JSON.parse(chunk)
+				const { code, data } = chunk
 				if (code !== 0) return
 				switch (data.code) {
 					case 0:
@@ -39,26 +40,22 @@ const checkLoginStatus = setInterval(() => {
 						console.log('qrcode not scanned')
 						break
 					default:
-						console.log(`unexpected status code ${code}`, data)
+						console.log(`unexpected status code ${code}`, chunk)
 				}
 			})
 		}
 	)
-}, 8000)
+}, 10000)
 
 function write2file(url) {
 	clearInterval(checkLoginStatus)
 	url = URL.parse(url)
 	let params = new URLSearchParams(url.query)
 	params = Array.from(params.entries())
-	const token = {}
-	for (const [k, v] of params) {
-		token[k] = v
-	}
-	token.csrf = token.bili_jct
-	delete token['gourl']
+	params = params.filter((x) => x[0] !== 'gourl')
+	params = params.map((x) => `${x[0]}=${x[1]}`)
 	const headers = {
-		Cookie: token,
+		Cookie: params,
 		Referer: 'https://space1.bilibili.com/',
 		'User-Agent':
 			'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.54'

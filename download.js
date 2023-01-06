@@ -1,5 +1,4 @@
-const { check } = require('./check.js')
-check()
+require('./check.js')
 const { existsSync, createWriteStream } = require('node:fs')
 const { mid } = require('./target.json')
 const listFile = `./${mid}.json`
@@ -13,10 +12,6 @@ const URL = require('node:url')
 const list = require(listFile)
 const headers = require('./headers.json')
 
-const print = (e, data) => {
-	console.error(e, data)
-	process.exit()
-}
 list.forEach((el, i) => {
 	setTimeout(() => {
 		getLink(el, i)
@@ -46,25 +41,14 @@ function getLink(el, i) {
 				chunks = Buffer.concat(chunks)
 				chunks = JSON.parse(chunks)
 				const { code, data } = chunks
-				switch (code) {
-					case 0:
-						if (data) {
-							const audioLink = data.dash.audio[0].baseUrl
-							setTimeout(() => {
-								downloadAudio(bvid, audioLink)
-							}, (i + 1) * 2000)
-						} else {
-							print('invalid data', data)
-						}
-						break
-					case -400:
-						print('request error', chunks)
-						break
-					case -404:
-						print('video not exist', chunks)
-						break
-					default:
-						print(`unexpected status code ${code}`, chunks)
+				if (code === 0) {
+					const audioLink = data.dash.audio[0].baseUrl
+					setTimeout(() => {
+						downloadAudio(bvid, audioLink)
+					}, (i + 1) * 2000)
+				} else {
+					console.error('get cid error', chunks)
+					process.exit()
 				}
 			})
 	})

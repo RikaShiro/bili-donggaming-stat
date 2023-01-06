@@ -1,5 +1,4 @@
-const { check } = require('./check.js')
-check()
+require('./check.js')
 const https = require('node:https')
 const http = require('node:http')
 const { URLSearchParams } = require('node:url')
@@ -17,10 +16,6 @@ const options = {
 }
 let bvidList = []
 
-const print = (info, data) => {
-	console.error(info, data)
-	process.exit()
-}
 const search = () => {
 	console.log(`search for videos ... page #${options.pn}`)
 	const params = new URLSearchParams(options).toString()
@@ -33,42 +28,26 @@ const search = () => {
 		},
 		// chunks size can be large. use chunks to collect
 		(res) => {
-			const chunks = []
+			let chunks = []
 			res.on('data', (chunk) => {
 				chunks.push(chunk)
 			})
 			res.on('end', () => {
-				parseChunks(chunks)
+				chunks = Buffer.concat(chunks)
+				chunks = JSON.parse(chunks)
+				const { code, data } = chunks
+				if (code === 0) {
+					push2list(data)
+				} else {
+					console.error('search video error', chunks)
+					process.exit()
+				}
 			})
 		}
 	)
 }
-const searchWithinRange = setInterval(search, 8000)
 
-function parseChunks(chunks) {
-	chunks = Buffer.concat(chunks)
-	const { code, data } = JSON.parse(chunks)
-	switch (code) {
-		case 0:
-			push2list(data)
-			return
-		case -400:
-			print('request error', chunks)
-			break
-		case -401:
-			print('unauthorized access', chunks)
-			break
-		case -412:
-			print('request intercepted', chunks)
-			break
-		case -1200:
-			print('request downgraded', chunks)
-			break
-		default:
-			print(`unexpected status code ${code}`, chunks)
-	}
-	clearInterval(searchWithinRange)
-}
+const searchWithinRange = setInterval(search, 8000)
 
 function push2list(data) {
 	let done = false
@@ -76,16 +55,18 @@ function push2list(data) {
 	const { vlist } = list
 	vlist.forEach((video) => {
 		const { created } = video
-		if (within(created, 7)) {
-			const { bvid, title } = video
-			bvidList.push({ bvid, title })
+		if (within(created, 14)) {
+			const { aid, bvid, title } = video
+			bvidList.push({ aid, bvid, title })
 		} else {
 			done = true
 		}
 	})
-	const { pn, ps, count } = page
-	if (pn * ps >= count) {
-		done = true
+	if (!done) {
+		const { pn, ps, count } = page
+		if (pn * ps >= count) {
+			done = true
+		}
 	}
 	if (done) {
 		clearInterval(searchWithinRange)
@@ -116,7 +97,7 @@ function push2list(data) {
 			const { bvid } = el
 			setTimeout(() => {
 				bvid2cid(bvid, i)
-			}, (i + 1) * 1000)
+			}, (i + 1) * 2000)
 		})
 
 		function bvid2cid(bvid, i) {
@@ -124,23 +105,17 @@ function push2list(data) {
 				`http://api.bilibili.com/x/player/pagelist?bvid=${bvid}`,
 				(res) => {
 					res.on('data', (chunk) => {
-						const { code, data } = JSON.parse(chunk)
-						switch (code) {
-							case 0:
-								bvidList[i].cid = data[0].cid
-								count++
-								if (count === n) {
-									write2file()
-								}
-								break
-							case -400:
-								print('request error', chunk)
-								break
-							case -404:
-								print('video not exist', chunk)
-								break
-							default:
-								print(`unexpected status code ${code}`, chunk)
+						chunk = JSON.parse(chunk)
+						const { code, data } = chunk
+						if (code === 0) {
+							bvidList[i].cid = data[0].cid
+							count++
+							if (count === n) {
+								write2file()
+							}
+						} else {
+							console.error(chunk)
+							process.exit()
 						}
 					})
 				}
