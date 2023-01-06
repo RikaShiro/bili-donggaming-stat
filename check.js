@@ -1,6 +1,5 @@
-const { existsSync, unlinkSync } = require('node:fs')
-
 function check() {
+	const { existsSync, unlinkSync } = require('node:fs')
 	if (!existsSync('./headers.json')) {
 		exit('no headers')
 	}
