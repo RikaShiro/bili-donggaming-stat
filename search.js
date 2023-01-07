@@ -55,7 +55,7 @@ function push2list(data) {
 	const { vlist } = list
 	vlist.forEach((video) => {
 		const { created } = video
-		if (within(created, 14)) {
+		if (within(created, 30)) {
 			const { aid, bvid, title } = video
 			bvidList.push({ aid, bvid, title })
 		} else {
@@ -71,6 +71,7 @@ function push2list(data) {
 	if (done) {
 		clearInterval(searchWithinRange)
 		console.log('search done')
+		console.log(`got info of ${bvidList.length} videos`)
 		removeDuplication()
 		cidAppend()
 	} else {
@@ -111,7 +112,12 @@ function push2list(data) {
 							bvidList[i].cid = data[0].cid
 							count++
 							if (count === n) {
-								write2file()
+								writeFileSync(`./${mid}.json`, JSON.stringify(bvidList))
+								console.log('get bvid done\n')
+								console.log('start requesting audio url in 5s ...')
+								setTimeout(() => {
+									require('./getAudioLink.js')
+								}, 5000)
 							}
 						} else {
 							console.error(chunk)
@@ -120,12 +126,6 @@ function push2list(data) {
 					})
 				}
 			)
-		}
-
-		function write2file() {
-			console.log('write list to file ...')
-			writeFileSync(`./${mid}.json`, JSON.stringify(bvidList))
-			console.log('done')
 		}
 	}
 }

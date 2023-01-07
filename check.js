@@ -17,7 +17,6 @@ function check() {
 		unlinkSync('./target.json')
 		exit('no target user id')
 	}
-	console.log('aaa')
 
 	function exit(msg) {
 		console.error(msg)
