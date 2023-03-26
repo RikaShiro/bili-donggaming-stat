@@ -1,6 +1,5 @@
 require('./check.js')
 const https = require('node:https')
-const http = require('node:http')
 const { URLSearchParams } = require('node:url')
 const { writeFileSync } = require('node:fs')
 const { mid } = require('./target.json')
@@ -102,8 +101,8 @@ function push2list(data) {
 		})
 
 		function bvid2cid(bvid, i) {
-			http.get(
-				`http://api.bilibili.com/x/player/pagelist?bvid=${bvid}`,
+			https.get(
+				`https://api.bilibili.com/x/player/pagelist?bvid=${bvid}`,
 				(res) => {
 					res.on('data', (chunk) => {
 						chunk = JSON.parse(chunk)
